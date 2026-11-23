@@ -2,7 +2,7 @@ import org.json.JSONObject;
 
 /**
  * Represents a product in the e-commerce system.
- */
+ **/
 public class Product {
     private String proId;
     private String proModel;
