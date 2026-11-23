@@ -41,4 +41,35 @@ public class UserOperation {
             }
         }
     }
-}
+    public String encryptPassword(String userPassword) {
+        if (userPassword == null) return "";
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random = new Random();
+
+        StringBuilder randStr = new StringBuilder();
+        for (int i = 0; i < 2 * userPassword.length(); i++) {
+            randStr.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        StringBuilder result = new StringBuilder("^^");
+        for (int i = 0; i < userPassword.length(); i++) {
+            result.append(randStr.charAt(2 * i));
+            result.append(randStr.charAt(2 * i + 1));
+            result.append(userPassword.charAt(i));
+        }
+        result.append("$$");
+        return result.toString();
+    }
+
+    public String decryptPassword(String encryptedPassword) {
+        if (encryptedPassword == null || !encryptedPassword.startsWith("^^") || !encryptedPassword.endsWith("$$") || encryptedPassword.length() < 4) {
+            return "";
+        }
+        String body = encryptedPassword.substring(2, encryptedPassword.length() - 2);
+        StringBuilder result = new StringBuilder();
+        for (int i = 2; i < body.length(); i += 3) {
+            result.append(body.charAt(i));
+        }
+        return result.toString();
+        }
+    }
