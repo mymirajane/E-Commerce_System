@@ -1,9 +1,6 @@
 package model;
 import org.json.JSONObject;
 
-/**
- * Represents a product in the e-commerce system.
- **/
 public class Product {
     private String proId;
     private String proModel;
@@ -38,9 +35,7 @@ public class Product {
         this.proLikesCount = proLikesCount;
     }
 
-    /**
-     * Default constructor initializing attributes with default values.
-     */
+
     public Product() {
         this.proId = "";
         this.proModel = "";
@@ -116,11 +111,7 @@ public class Product {
         this.proLikesCount = proLikesCount;
     }
 
-    /**
-     * Returns the product information as a formatted JSON string.
-     *
-     * @return String in JSON-like format
-     */
+
     @Override
     public String toString() {
         JSONObject json = new JSONObject();
