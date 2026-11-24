@@ -108,4 +108,21 @@ public class ProductOperation {
         }
         return null;
     }
+
+    // 4. Tìm các sản phẩm có tên chứa từ khóa (không phân biệt hoa thường)
+    public List<Product> getProductListByKeyword(String keyword) {
+        List<Product> result = new ArrayList<>();
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return result;
+        }
+        List<Product> allProducts = readAllProducts();
+        String key = keyword.toLowerCase();
+
+        for (Product p : allProducts) {
+            if (p.getProName().toLowerCase().contains(key)) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
 }
