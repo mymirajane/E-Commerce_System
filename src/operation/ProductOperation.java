@@ -5,6 +5,14 @@ import model.ProductListResult;
 import org.json.JSONObject;
 import java.io.*;
 import java.util.*;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.CountDownLatch;
+import javax.imageio.ImageIO;
+import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Scene;
+import javafx.scene.chart.*;
+import javafx.scene.image.WritableImage;
 
 public class ProductOperation {
     private static ProductOperation instance = null;
@@ -167,5 +175,201 @@ public class ProductOperation {
         } catch (IOException e) {
             // Bỏ qua lỗi ghi file
         }
+    }
+    private void initJavaFX() {
+        try {
+            Platform.startup(() -> {});
+        } catch (IllegalStateException e) {
+            // JavaFX đã được khởi động trước đó
+        }
+    }
+    // Hàm phụ: Khởi chạy JavaFX và lưu biểu đồ thành file ảnh PNG vào data/figure/
+    private void saveChartToFile(Chart chart, String fileName) {
+        try {
+            File folder = new File("data/figure");
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            try {
+                Platform.startup(() -> {});
+            } catch (IllegalStateException e) {
+                // JavaFX đã được khởi động trước đó
+            }
+
+            CountDownLatch latch = new CountDownLatch(1);
+            Platform.runLater(() -> {
+                try {
+                    chart.setAnimated(false);
+                    Scene scene = new Scene(chart, 800, 600);
+                    chart.applyCss();
+                    chart.layout();
+
+                    WritableImage image = scene.snapshot(null);
+                    BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+                    ImageIO.write(bufferedImage, "png", new File("data/figure/" + fileName));
+                } catch (Exception e) {
+                    // Bỏ qua lỗi xuất ảnh
+                } finally {
+                    latch.countDown();
+                }
+            });
+            latch.await();
+        } catch (Exception e) {
+            // Bỏ qua lỗi luồng JavaFX
+        }
+    }
+
+    // 7. Biểu đồ cột: Tổng số sản phẩm theo từng danh mục (giảm dần)
+    public void generateCategoryFigure() {
+        initJavaFX();
+        List<Product> products = readAllProducts();
+        List<String> categories = new ArrayList<>();
+        List<Integer> counts = new ArrayList<>();
+
+        for (Product p : products) {
+            String cat = p.getProCategory();
+            int index = categories.indexOf(cat);
+            if (index == -1) {
+                categories.add(cat);
+                counts.add(1);
+            } else {
+                counts.set(index, counts.get(index) + 1);
+            }
+        }
+
+        // Sắp xếp giảm dần theo số lượng sản phẩm
+        for (int i = 0; i < counts.size() - 1; i++) {
+            for (int j = i + 1; j < counts.size(); j++) {
+                if (counts.get(i) < counts.get(j)) {
+                    int tempCount = counts.get(i);
+                    counts.set(i, counts.get(j));
+                    counts.set(j, tempCount);
+
+                    String tempCat = categories.get(i);
+                    categories.set(i, categories.get(j));
+                    categories.set(j, tempCat);
+                }
+            }
+        }
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Category");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Number of Products");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Total Products by Category");
+        barChart.setLegendVisible(false);
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (int i = 0; i < categories.size(); i++) {
+            series.getData().add(new XYChart.Data<>(categories.get(i), counts.get(i)));
+        }
+        barChart.getData().add(series);
+
+        saveChartToFile(barChart, "category_figure.png");
+    }
+
+    // 8. Biểu đồ tròn: Tỉ lệ sản phẩm giảm giá (<30, 30-60, >60)
+    public void generateDiscountFigure() {
+        initJavaFX();
+        List<Product> products = readAllProducts();
+        int less30 = 0;
+        int between30And60 = 0;
+        int greater60 = 0;
+
+        for (Product p : products) {
+            double d = p.getProDiscount();
+            if (d < 30) {
+                less30++;
+            } else if (d <= 60) {
+                between30And60++;
+            } else {
+                greater60++;
+            }
+        }
+
+        PieChart pieChart = new PieChart();
+        pieChart.setTitle("Product Discount Distribution");
+        pieChart.getData().add(new PieChart.Data("< 30% (" + less30 + ")", less30));
+        pieChart.getData().add(new PieChart.Data("30% - 60% (" + between30And60 + ")", between30And60));
+        pieChart.getData().add(new PieChart.Data("> 60% (" + greater60 + ")", greater60));
+
+        saveChartToFile(pieChart, "discount_figure.png");
+    }
+
+    // 9. Biểu đồ cột: Tổng lượt thích (likes_count) theo từng danh mục (tăng dần)
+    public void generateLikesCountFigure() {
+        initJavaFX();
+        List<Product> products = readAllProducts();
+        List<String> categories = new ArrayList<>();
+        List<Integer> totalLikes = new ArrayList<>();
+
+        for (Product p : products) {
+            String cat = p.getProCategory();
+            int index = categories.indexOf(cat);
+            if (index == -1) {
+                categories.add(cat);
+                totalLikes.add(p.getProLikesCount());
+            } else {
+                totalLikes.set(index, totalLikes.get(index) + p.getProLikesCount());
+            }
+        }
+
+        // Sắp xếp tăng dần theo tổng lượt thích
+        for (int i = 0; i < totalLikes.size() - 1; i++) {
+            for (int j = i + 1; j < totalLikes.size(); j++) {
+                if (totalLikes.get(i) > totalLikes.get(j)) {
+                    int tempLikes = totalLikes.get(i);
+                    totalLikes.set(i, totalLikes.get(j));
+                    totalLikes.set(j, tempLikes);
+
+                    String tempCat = categories.get(i);
+                    categories.set(i, categories.get(j));
+                    categories.set(j, tempCat);
+                }
+            }
+        }
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Category");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Total Likes Count");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Total Likes Count by Category");
+        barChart.setLegendVisible(false);
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (int i = 0; i < categories.size(); i++) {
+            series.getData().add(new XYChart.Data<>(categories.get(i), totalLikes.get(i)));
+        }
+        barChart.getData().add(series);
+
+        saveChartToFile(barChart, "likes_count_figure.png");
+    }
+
+    // 10. Biểu đồ phân tán: Mối tương quan giữa likes_count và discount
+    public void generateDiscountLikesCountFigure() {
+        initJavaFX();
+        List<Product> products = readAllProducts();
+
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setLabel("Discount (%)");
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Likes Count");
+
+        ScatterChart<Number, Number> scatterChart = new ScatterChart<>(xAxis, yAxis);
+        scatterChart.setTitle("Likes Count vs Discount");
+        scatterChart.setLegendVisible(false);
+
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        for (Product p : products) {
+            series.getData().add(new XYChart.Data<>(p.getProDiscount(), p.getProLikesCount()));
+        }
+        scatterChart.getData().add(series);
+
+        saveChartToFile(scatterChart, "discount_likes_count_figure.png");
     }
 }

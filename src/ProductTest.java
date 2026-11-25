@@ -18,5 +18,12 @@ public class ProductTest {
         boolean deleted = op.deleteProduct("p001");
         System.out.println("Xoa p001 thanh cong: " + deleted);
         System.out.println("Tim lai p001 sau khi xoa: " + op.getProductById("p001"));
+        // 4. Kiểm tra xuất 4 biểu đồ ra thư mục data/figure/
+        op.generateCategoryFigure();
+        op.generateDiscountFigure();
+        op.generateLikesCountFigure();
+        op.generateDiscountLikesCountFigure();
+        System.out.println("Da xuat 4 bieu do vao thu muc data/figure!");
+    System.exit(0);
     }
 }
