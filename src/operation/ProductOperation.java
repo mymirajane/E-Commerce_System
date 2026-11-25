@@ -125,4 +125,47 @@ public class ProductOperation {
         }
         return result;
     }
+    // Hàm phụ: Ghi lại danh sách sản phẩm đè lên file data/products.txt
+    private void saveAllProducts(List<Product> list) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(PRODUCT_FILE));
+            for (Product p : list) {
+                writer.write(p.toString());
+                writer.newLine();
+            }
+            writer.close();
+        } catch (IOException e) {
+            // Bỏ qua lỗi ghi file
+        }
+    }
+
+    // 5. Xóa 1 sản phẩm theo proId (trả về true nếu xóa được, false nếu không tìm thấy)
+    public boolean deleteProduct(String productId) {
+        List<Product> allProducts = readAllProducts();
+        boolean found = false;
+
+        for (int i = 0; i < allProducts.size(); i++) {
+            if (allProducts.get(i).getProId().equals(productId)) {
+                allProducts.remove(i);
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            saveAllProducts(allProducts);
+        }
+        return found;
+    }
+
+    // 6. Xóa sạch toàn bộ dữ liệu trong data/products.txt
+    public void deleteAllProducts() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(PRODUCT_FILE));
+            writer.write("");
+            writer.close();
+        } catch (IOException e) {
+            // Bỏ qua lỗi ghi file
+        }
+    }
 }
