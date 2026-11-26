@@ -13,7 +13,7 @@ public class Main {
     private static final CustomerOperation customerOperation = CustomerOperation.getInstance();
 
     public static void main(String[] args) {
-        AdminOperation.getInstance().registerAdmin();
+        adminOperation.registerAdmin();
         runMenu();
     }
 
@@ -28,7 +28,7 @@ public class Main {
                         handleLogin();
                         break;
                     case "2":
-                        io.printMessage("Registration will be implemented next.");
+                        handleRegister();
                         break;
                     case "3":
                         io.printMessage("Goodbye!");
@@ -95,6 +95,45 @@ public class Main {
             } catch (Exception e) {
                 io.printErrorMessage("CustomerMenu", "Error: " + e.getMessage());
             }
+        }
+    }
+    private static void handleRegister() {
+        String[] inputs = io.getUserInput("Enter name, pass, email, and mobile (seperated by space): ",4);
+
+        String name = inputs[0].trim();
+        String pass = inputs[1].trim();
+        String email = inputs[2].trim();
+        String mobile = inputs[3].trim();
+
+        if (!userOperation.validateUsername(name)) {
+            io.printErrorMessage("Register", "Invalid username. Use at least 5 letters or underscores.");
+            return;
+        }
+        if (userOperation.checkUsernameExist(name)) {
+            io.printErrorMessage("Register", "Username already exists. Please choose another.");
+            return;
+        }
+       
+        if (!userOperation.validatePassword(pass)) {
+            io.printErrorMessage("Register", "Invalid password. Must be at least 5 characters with 1 letter and 1 number.");
+            return;
+        }
+    
+        if (!customerOperation.validateEmail(email)) {
+            io.printErrorMessage("Register", "Invalid email format (e.g., user@example.com).");
+            return;
+        }
+       
+        if (!customerOperation.validateMobile(mobile)) {
+            io.printErrorMessage("Register", "Invalid mobile. Must be 10 digits starting with 03 or 04.");
+            return;
+        }
+
+        boolean success = customerOperation.registerCustomer(name, pass, email, mobile);
+        if (success) {
+            io.printMessage("Registration successful! You can now log in.");
+        } else {
+            io.printErrorMessage("Register", "Registration failed. Please check your inputs.");
         }
     }
 }
