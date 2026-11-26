@@ -11,18 +11,7 @@ public class Product {
     private double proDiscount;
     private int proLikesCount;
 
-    /**
-     * Constructs a product object with specified attributes.
-     *
-     * @param proId           Product ID (must be unique)
-     * @param proModel        Product model
-     * @param proCategory     Product category
-     * @param proName         Product name
-     * @param proCurrentPrice Current price of the product
-     * @param proRawPrice     Original price of the product
-     * @param proDiscount     Discount percentage
-     * @param proLikesCount   Number of likes
-     */
+
     public Product(String proId, String proModel, String proCategory, String proName,
                    double proCurrentPrice, double proRawPrice, double proDiscount, int proLikesCount) {
         this.proId = proId;

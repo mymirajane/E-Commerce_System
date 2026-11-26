@@ -43,11 +43,9 @@ public class ProductOperation {
             reader.close();
             writer.close();
         } catch (IOException e) {
-            // Bỏ qua lỗi đọc/ghi file
         }
     }
 
-    // Hàm phụ: Đọc toàn bộ sản phẩm từ data/products.txt thành List<Product>
     private List<Product> readAllProducts() {
         List<Product> list = new ArrayList<>();
         File file = new File(PRODUCT_FILE);
@@ -76,12 +74,9 @@ public class ProductOperation {
             }
             reader.close();
         } catch (Exception e) {
-            // Bỏ qua lỗi
         }
         return list;
     }
-
-    // 2. Lấy danh sách sản phẩm theo trang (mỗi trang 10 món)
     public ProductListResult getProductList(int pageNumber) {
         List<Product> allProducts = readAllProducts();
         int totalItems = allProducts.size();
@@ -106,7 +101,6 @@ public class ProductOperation {
         return new ProductListResult(pageList, pageNumber, totalPages);
     }
 
-    // 3. Tìm 1 sản phẩm theo đúng proId
     public Product getProductById(String productId) {
         List<Product> allProducts = readAllProducts();
         for (Product p : allProducts) {
@@ -117,7 +111,6 @@ public class ProductOperation {
         return null;
     }
 
-    // 4. Tìm các sản phẩm có tên chứa từ khóa (không phân biệt hoa thường)
     public List<Product> getProductListByKeyword(String keyword) {
         List<Product> result = new ArrayList<>();
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -133,7 +126,6 @@ public class ProductOperation {
         }
         return result;
     }
-    // Hàm phụ: Ghi lại danh sách sản phẩm đè lên file data/products.txt
     private void saveAllProducts(List<Product> list) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(PRODUCT_FILE));
@@ -143,11 +135,9 @@ public class ProductOperation {
             }
             writer.close();
         } catch (IOException e) {
-            // Bỏ qua lỗi ghi file
         }
     }
 
-    // 5. Xóa 1 sản phẩm theo proId (trả về true nếu xóa được, false nếu không tìm thấy)
     public boolean deleteProduct(String productId) {
         List<Product> allProducts = readAllProducts();
         boolean found = false;
@@ -166,24 +156,20 @@ public class ProductOperation {
         return found;
     }
 
-    // 6. Xóa sạch toàn bộ dữ liệu trong data/products.txt
     public void deleteAllProducts() {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(PRODUCT_FILE));
             writer.write("");
             writer.close();
         } catch (IOException e) {
-            // Bỏ qua lỗi ghi file
         }
     }
     private void initJavaFX() {
         try {
             Platform.startup(() -> {});
         } catch (IllegalStateException e) {
-            // JavaFX đã được khởi động trước đó
         }
     }
-    // Hàm phụ: Khởi chạy JavaFX và lưu biểu đồ thành file ảnh PNG vào data/figure/
     private void saveChartToFile(Chart chart, String fileName) {
         try {
             File folder = new File("data/figure");
@@ -194,7 +180,6 @@ public class ProductOperation {
             try {
                 Platform.startup(() -> {});
             } catch (IllegalStateException e) {
-                // JavaFX đã được khởi động trước đó
             }
 
             CountDownLatch latch = new CountDownLatch(1);
@@ -209,18 +194,15 @@ public class ProductOperation {
                     BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
                     ImageIO.write(bufferedImage, "png", new File("data/figure/" + fileName));
                 } catch (Exception e) {
-                    // Bỏ qua lỗi xuất ảnh
                 } finally {
                     latch.countDown();
                 }
             });
             latch.await();
         } catch (Exception e) {
-            // Bỏ qua lỗi luồng JavaFX
         }
     }
 
-    // 7. Biểu đồ cột: Tổng số sản phẩm theo từng danh mục (giảm dần)
     public void generateCategoryFigure() {
         initJavaFX();
         List<Product> products = readAllProducts();
@@ -238,7 +220,6 @@ public class ProductOperation {
             }
         }
 
-        // Sắp xếp giảm dần theo số lượng sản phẩm
         for (int i = 0; i < counts.size() - 1; i++) {
             for (int j = i + 1; j < counts.size(); j++) {
                 if (counts.get(i) < counts.get(j)) {
@@ -271,7 +252,6 @@ public class ProductOperation {
         saveChartToFile(barChart, "category_figure.png");
     }
 
-    // 8. Biểu đồ tròn: Tỉ lệ sản phẩm giảm giá (<30, 30-60, >60)
     public void generateDiscountFigure() {
         initJavaFX();
         List<Product> products = readAllProducts();
@@ -299,7 +279,6 @@ public class ProductOperation {
         saveChartToFile(pieChart, "discount_figure.png");
     }
 
-    // 9. Biểu đồ cột: Tổng lượt thích (likes_count) theo từng danh mục (tăng dần)
     public void generateLikesCountFigure() {
         initJavaFX();
         List<Product> products = readAllProducts();
@@ -317,7 +296,6 @@ public class ProductOperation {
             }
         }
 
-        // Sắp xếp tăng dần theo tổng lượt thích
         for (int i = 0; i < totalLikes.size() - 1; i++) {
             for (int j = i + 1; j < totalLikes.size(); j++) {
                 if (totalLikes.get(i) > totalLikes.get(j)) {
@@ -350,7 +328,6 @@ public class ProductOperation {
         saveChartToFile(barChart, "likes_count_figure.png");
     }
 
-    // 10. Biểu đồ phân tán: Mối tương quan giữa likes_count và discount
     public void generateDiscountLikesCountFigure() {
         initJavaFX();
         List<Product> products = readAllProducts();
