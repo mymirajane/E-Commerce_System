@@ -158,6 +158,3 @@ public class OrderOperation {
         return json.substring(start, end);
     }
 }
-
-    
-}

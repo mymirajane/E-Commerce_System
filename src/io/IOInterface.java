@@ -34,8 +34,8 @@ public class IOInterface {
     return result;
     }
 
-    public void showList(String userRole, String listType, List<?> onjectList, int currentPage, int totalPages){
-        System.out.println("------ " + listType + " List (Page " + pageNumber
+    public void showList(String userRole, String listType, List<?> objectList, int currentPage, int totalPages){
+        System.out.println("------ " + listType + " List (Page " + currentPage
             + "/" + totalPages + ") [" + userRole + "] ------");
         if (objectList == null || objectList.isEmpty()) {
         System.out.println("No " + listType.toLowerCase() + " records found.");
@@ -44,7 +44,7 @@ public class IOInterface {
             System.out.println((i + 1) + ". " + objectList.get(i).toString());
         }
     }
-    System.out.println("Page " + pageNumber + " of " + totalPages);
+    System.out.println("Page " + currentPage + " of " + totalPages);
     System.out.println("Enter 'n' for next page, 'p' for previous page, or 'b' to go back.");
 
     }
@@ -55,8 +55,9 @@ public class IOInterface {
         return instance;
     }
 
-public void printErrorMessage(String data, String filePath) {
-        System.out.println("[Error in " + errorSource + "]: " + errorMessage); }
+public void printErrorMessage(String errorSource, String errorMessage) {
+        System.out.println("[Error in " + errorSource + "]: " + errorMessage);
+    }
  
         
 public void printMessage(String message) {
