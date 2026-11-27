@@ -6,10 +6,15 @@ import operation.AdminOperation;
 import operation.CustomerOperation;
 import operation.UserOperation;
 import model.CustomerListResult;
+import model.Product;
+import model.ProductListResult;
+import operation.ProductOperation;
+import java.util.List;
 
     public class Main {
 
     private static final IOInterface io = IOInterface.getInstance();
+    private static final ProductOperation productOperation = ProductOperation.getInstance();
     private static final UserOperation userOperation = UserOperation.getInstance();
     private static final AdminOperation adminOperation = AdminOperation.getInstance();
     private static final CustomerOperation customerOperation = CustomerOperation.getInstance();
@@ -80,6 +85,8 @@ import model.CustomerListResult;
                     continue;
                 switch (choice[0].trim()) {
                     case "1":
+                        handleShowProducts("admin");
+                        break;
                     case "4":
                     case "5":
                     case "6":
@@ -108,9 +115,14 @@ import model.CustomerListResult;
         while (true) {
             try {
                 io.customerMenu();
+
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
                 if (choice == null || choice.length < 1)
                     continue;
+
+                choice = io.getUserInput("Enter your choice: ", 2);
+                if (choice == null || choice.length < 1) continue;
+
                 switch (choice[0].trim()) {
                     case "1":
                         io.printObject(customer);
@@ -119,6 +131,16 @@ import model.CustomerListResult;
                         handleUpdateProfile(customer);
                         break;
                     case "3":
+                        String keyword = "";
+                        if (choice.length > 1 && choice[1] != null) {
+                            keyword = choice[1].trim();
+                        }
+                        if (keyword.isEmpty()) {
+                            handleShowProducts("customer");
+                        } else {
+                            handleSearchProductsByKeyword(keyword);
+                        }
+                        break;
                     case "4":
                     case "5":
                         io.printMessage("Feature " + choice[0] + " will be connected by team.");
@@ -297,5 +319,92 @@ import model.CustomerListResult;
                 }
             }
         }
+
+    }
+    private static void handleShowProducts(String userRole) {
+        int page = 1;
+        while (true) {
+            ProductListResult result = productOperation.getProductList(page);
+            if (result == null || result.getProductList() == null || result.getProductList().isEmpty()) {
+                io.printMessage("No products found.");
+                return;
+            }
+
+            io.showList(userRole, "Product", result.getProductList(), result.getCurrentPage(), result.getTotalPages());
+
+            String[] nav = io.getUserInput("Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a product ID to view details: ", 1);
+            if (nav == null || nav.length < 1) continue;
+            String cmd = nav[0].trim();
+
+            if ("b".equalsIgnoreCase(cmd)) {
+                return;
+            } else if ("n".equalsIgnoreCase(cmd)) {
+                if (page < result.getTotalPages()) {
+                    page++;
+                } else {
+                    io.printErrorMessage("ShowProducts", "You are already on the last page.");
+                }
+            } else if ("p".equalsIgnoreCase(cmd)) {
+                if (page > 1) {
+                    page--;
+                } else {
+                    io.printErrorMessage("ShowProducts", "You are already on the first page.");
+                }
+            } else {
+                Product found = productOperation.getProductById(cmd);
+                if (found != null) {
+                    io.printObject(found);
+                } else {
+                    io.printErrorMessage("ShowProducts", "Product ID not found: " + cmd);
+                }
+            }
+        }
+    }
+    private static void handleSearchProductsByKeyword(String keyword) {
+        List<Product> results = productOperation.getProductListByKeyword(keyword);
+        if (results == null || results.isEmpty()) {
+            io.printMessage("No products found matching keyword: " + keyword);
+            return;
+        }
+
+        int page = 1;
+        int pageSize = 10;
+        int totalPages = (int) Math.ceil((double) results.size() / pageSize);
+
+        while (true) {
+            int start = (page - 1) * pageSize;
+            int end = Math.min(start + pageSize, results.size());
+            List<Product> pageList = results.subList(start, end);
+
+            io.showList("customer", "Product", pageList, page, totalPages);
+
+            String[] nav = io.getUserInput("Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a product ID to view details: ", 1);
+            if (nav == null || nav.length < 1) continue;
+            String cmd = nav[0].trim();
+
+            if ("b".equalsIgnoreCase(cmd)) {
+                return;
+            } else if ("n".equalsIgnoreCase(cmd)) {
+                if (page < totalPages) {
+                    page++;
+                } else {
+                    io.printErrorMessage("SearchProducts", "You are already on the last page.");
+                }
+            } else if ("p".equalsIgnoreCase(cmd)) {
+                if (page > 1) {
+                    page--;
+                } else {
+                    io.printErrorMessage("SearchProducts", "You are already on the first page.");
+                }
+            } else {
+                Product found = productOperation.getProductById(cmd);
+                if (found != null) {
+                    io.printObject(found);
+                } else {
+                    io.printErrorMessage("SearchProducts", "Product ID not found: " + cmd);
+                }
+            }
+        }
+    }
 }
-}
+
