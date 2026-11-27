@@ -7,6 +7,8 @@ import operation.CustomerOperation;
 import operation.UserOperation;
 import model.CustomerListResult;
 
+    public class Main {
+
     private static final IOInterface io = IOInterface.getInstance();
     private static final UserOperation userOperation = UserOperation.getInstance();
     private static final AdminOperation adminOperation = AdminOperation.getInstance();
@@ -295,4 +297,5 @@ import model.CustomerListResult;
                 }
             }
         }
+}
 }

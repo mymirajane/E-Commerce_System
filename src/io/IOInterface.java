@@ -34,7 +34,7 @@ public class IOInterface {
     return result;
     }
 
-    public void showList(String userRole, String listType, List<?> onjectList, int currentPage, int totalPages){
+    public void showList(String userRole, String listType, List<?> objectList, int pageNumber, int totalPages){
         System.out.println("------ " + listType + " List (Page " + pageNumber
             + "/" + totalPages + ") [" + userRole + "] ------");
         if (objectList == null || objectList.isEmpty()) {
@@ -55,7 +55,7 @@ public class IOInterface {
         return instance;
     }
 
-public void printErrorMessage(String data, String filePath) {
+public void printErrorMessage(String errorSource, String errorMessage) {
         System.out.println("[Error in " + errorSource + "]: " + errorMessage); }
  
         
