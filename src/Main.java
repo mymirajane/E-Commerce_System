@@ -5,6 +5,9 @@ import model.User;
 import operation.AdminOperation;
 import operation.CustomerOperation;
 import operation.UserOperation;
+import model.CustomerListResult;
+
+
 
 public class Main {
     private static final IOInterface io = IOInterface.getInstance();
@@ -71,11 +74,26 @@ public class Main {
             try {
                 io.adminMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
-                if ("8".equals(choice[0].trim())) {
-                    io.printMessage("Logged out.");
-                    return;
+                switch(choice[0].trim()) {
+                    case "1":
+                    case "4":
+                    case "5":
+                    case "6":
+                    case "7":
+                        io.printMessage("Feature " + choice[0] + " will be connected by team.");
+                        break;
+                    case "2":
+                        handleRegister();
+                        break;
+                    case "3":
+                        handleShowCustomers();
+                        break;
+                    case "8":
+                        io.printMessage("Logged out.");
+                        return;
+                    default:
+                        io.printErrorMessage("AdminMenu", "Invalid choice. Please enter 1 to 8.");
                 }
-                io.printMessage("Admin feature " + choice[0] + " will be connected on Day 5.");
             } catch (Exception e) {
                 io.printErrorMessage("AdminMenu", "Error: " + e.getMessage());
             }
@@ -87,11 +105,25 @@ public class Main {
             try {
                 io.customerMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
-                if ("6".equals(choice[0].trim())) {
-                    io.printMessage("Logged out.");
-                    return;
+                switch (choice[0].trim()) {
+                    case "1":
+                        io.printObject(customer);
+                        break;
+                    case "2":
+                        handleUpdateProfile(customer);
+                        break;
+                    case "3":
+                    case "4":
+                    case "5":
+                        io.printMessage("Feature " + choice[0] + " will be connected by team.");
+                        break;
+                    case "6":
+                        io.printMessage("Logged out.");
+                        return;
+                        default:
+                            io.printErrorMessage("CustomerMenu", "Invalid choice. Please enter 1 to 6.");
                 }
-                io.printMessage("Customer feature " + choice[0] + " will be connected on Day 5. ");
+
             } catch (Exception e) {
                 io.printErrorMessage("CustomerMenu", "Error: " + e.getMessage());
             }
@@ -136,4 +168,76 @@ public class Main {
             io.printErrorMessage("Register", "Registration failed. Please check your inputs.");
         }
     }
+
+    private static void handleUpdateProfile (Customer customer) {
+        String[] inputs = io.getUserInput("Enter attribute (username/password/email/mobile) and new value: ",2);
+        String attr = inputs[0].trim();
+        String val = inputs[1].trim();
+
+        if (attr.isEmpty() || val.isEmpty()) {
+            io.printErrorMessage("UpdateProfile", "Attribute and new value cannot be empty.");
+            return;
+        }
+
+        boolean ok = customerOperation.updateProfile(attr, val, customer);
+        if (ok) {
+            io.printMessage("Profile updated successfully!");
+        } else {
+            io.printErrorMessage("UpdateProfile", "Update failed. Invalid attribute, duplicate username, or invalid format.");
+        }
+    }
+
+    private static void handleShowCustomers() {
+        int page = 1;
+        while (true) {
+            CustomerListResult result = customerOperation.getCustomerList(page);
+            if (result == null || result.getCustomers() == null || result.getCustomers().isEmpty()) {
+                io.printMessage("No customers found.");
+                return;
+            }
+
+            io.showList("admin", "Customer", result.getCustomers(), result.getCurrentPage(), result.getTotalPages());
+
+            String[] nav = io.getUserInput(
+                "Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a customer ID to view details: ", 1);
+            String cmd = nav[0].trim();
+
+            if ("b".equalsIgnoreCase(cmd)) {
+                return;
+            } else if ("n".equalsIgnoreCase(cmd)) {
+                if (page < result.getTotalPages()) {
+                    page++;
+                } else {
+                    io.printErrorMessage("ShowCustomers", "You are already on the last page.");
+                }
+            } else if ("p".equalsIgnoreCase(cmd)) {
+                if (page > 1) {
+                    page--;
+                } else {
+                    io.printErrorMessage("ShowCustomers", "You are already on the first page.");
+                }
+            } else {
+                
+                Customer found = null;
+                for (int p = 1; p <= result.getTotalPages(); p++) {
+                    CustomerListResult pageRes = customerOperation.getCustomerList(p);
+                    for (Customer c : pageRes.getCustomers()) {
+                        if (c.getUserId().equals(cmd)) {
+                            found = c;
+                            break;
+                        }
+                    }
+                    if (found != null) break;
+                }
+                if (found != null) {
+                    io.printObject(found);
+                } else {
+                    io.printErrorMessage("ShowCustomers", "Customer ID not found: " + cmd);
+                }
+            }
+        }
+    }
 }
+
+    
+
