@@ -25,7 +25,7 @@ public class Main {
             try {
                 io.mainMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
-
+                if (choice == null || choice.length < 1) continue;
                 switch (choice[0].trim()) {
                     case "1":
                         handleLogin();
@@ -47,6 +47,7 @@ public class Main {
 
     private static void handleLogin() {
         String[] inputs = io.getUserInput("Enter username and password: ", 2);
+        if (inputs == null || inputs.length < 2) return;
         String username = inputs[0].trim();
         String password = inputs[1].trim();
 
@@ -74,6 +75,7 @@ public class Main {
             try {
                 io.adminMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
+                if (choice == null || choice.length < 1) continue;
                 switch(choice[0].trim()) {
                     case "1":
                     case "4":
@@ -105,6 +107,7 @@ public class Main {
             try {
                 io.customerMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
+                if (choice == null || choice.length < 1) continue;
                 switch (choice[0].trim()) {
                     case "1":
                         io.printObject(customer);
@@ -131,7 +134,7 @@ public class Main {
     }
     private static void handleRegister() {
         String[] inputs = io.getUserInput("Enter name, pass, email, and mobile (seperated by space): ",4);
-
+        if (inputs == null || inputs.length < 4) return;
         String name = inputs[0].trim();
         String pass = inputs[1].trim();
         String email = inputs[2].trim();
@@ -171,6 +174,7 @@ public class Main {
 
     private static void handleUpdateProfile (Customer customer) {
         String[] inputs = io.getUserInput("Enter attribute (username/password/email/mobile) and new value: ",2);
+        if (inputs == null || inputs.length < 2) return;
         String attr = inputs[0].trim();
         String val = inputs[1].trim();
 
@@ -198,8 +202,8 @@ public class Main {
 
             io.showList("admin", "Customer", result.getCustomers(), result.getCurrentPage(), result.getTotalPages());
 
-            String[] nav = io.getUserInput(
-                "Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a customer ID to view details: ", 1);
+            String[] nav = io.getUserInput("Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a customer ID to view details: ", 1);
+            if (nav == null || nav.length < 1) continue;
             String cmd = nav[0].trim();
 
             if ("b".equalsIgnoreCase(cmd)) {
@@ -221,8 +225,9 @@ public class Main {
                 Customer found = null;
                 for (int p = 1; p <= result.getTotalPages(); p++) {
                     CustomerListResult pageRes = customerOperation.getCustomerList(p);
+                    if (pageRes == null || pageRes.getCustomers() == null) continue;
                     for (Customer c : pageRes.getCustomers()) {
-                        if (c.getUserId().equals(cmd)) {
+                        if (c != null && cmd.equals(c.getUserId())) {
                             found = c;
                             break;
                         }
