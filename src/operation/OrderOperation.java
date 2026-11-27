@@ -23,9 +23,100 @@ public class OrderOperation {
         }
         return instance;
     }
+
+    public void deleteAllOrders() {
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(ORDERS_FILE, false), StandardCharsets.UTF_8))) {
+            writer.write("");
+        } catch (IOException e) {
+        }
+    }
+    public void generateTestOrderData() {
+        List<String> productIds = loadAvailableProductIds();
+        if (productIds.isEmpty()) {
+            for (int i = 1; i <= 15; i++) {
+                productIds.add("p_" + String.format("%04d", i));
+            }
+        }
+
+        CustomerOperation customerOp = CustomerOperation.getInstance();
+        List<String> testCustomerIds = new ArrayList<>();
+
+        for (int i = 1; i <= 10; i++) {
+            String username = "test_user_" + (char) ('a' + i - 1);
+            String password = "pass" + i + "234";
+            String email = "testuser" + i + "@gmail.com";
+            String mobile = "04" + String.format("%08d", 10000000 + i);
+            customerOp.registerCustomer(username, password, email, mobile);
+        }
+        testCustomerIds.addAll(loadCustomerIds());
+        int limit = Math.min(10, testCustomerIds.size());
+
+        int year = LocalDateTime.now().getYear();
+        for (int i = 0; i < limit; i++) {
+            String customerId = testCustomerIds.get(i);
+            int numOrders = 50 + random.nextInt(151);
+
+            for (int j = 0; j < numOrders; j++) {
+                String proId = productIds.get(random.nextInt(productIds.size()));
+                int month = 1 + random.nextInt(12);
+                int day = 1 + random.nextInt(28); 
+                int hour = random.nextInt(24);
+                int minute = random.nextInt(60);
+                int second = random.nextInt(60);
+
+                String orderTime = String.format("%02d-%02d-%04d_%02d:%02d:%02d",
+                        day, month, year, hour, minute, second);
+                createAnOrder(customerId, proId, orderTime);
+            }
+        }
+    }
+
+    private List<String> loadAvailableProductIds() {
+        List<String> ids = new ArrayList<>();
+        File file = new File("data/products.txt");
+        if (!file.exists()) {
+            return ids;
+        }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String proId = extractJsonValue(line, "pro_id");
+                if (proId != null && !proId.isEmpty()) {
+                    ids.add(proId);
+                }
+            }
+        } catch (IOException e) {
+        }
+        return ids;
+    }
+
+    private List<String> loadCustomerIds() {
+        List<String> ids = new ArrayList<>();
+        File file = new File("data/users.txt");
+        if (!file.exists()) {
+            return ids;
+        }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("\"user_role\":\"customer\"") || line.contains("\"user_role\": \"customer\"")) {
+                    String userId = extractJsonValue(line, "user_id");
+                    if (userId != null && !userId.isEmpty()) {
+                        ids.add(userId);
+                    }
+                }
+            }
+        } catch (IOException e) {
+        }
+        return ids;
+    }
+
     public String generateUniqueOrderId() {
         Set<String> existingIds = new HashSet<>();
-        for (Order o : readAllOrders()) {
+        for (var o : readAllOrders()) {
             existingIds.add(o.getOrderId());
         }
 
@@ -47,7 +138,7 @@ public class OrderOperation {
                 ? LocalDateTime.now().format(TIME_FORMATTER)
                 : createTime;
 
-        Order order = new Order(orderId, customerId, productId, timeStr);
+        var order = new Order(orderId, customerId, productId, timeStr);
         try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(ORDERS_FILE, true), StandardCharsets.UTF_8))) {
             writer.write(order.toString());
@@ -157,7 +248,4 @@ public class OrderOperation {
         }
         return json.substring(start, end);
     }
-}
-
-    
 }
