@@ -1,11 +1,14 @@
 package operation;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import model.Admin;
+
 
 public class AdminOperation {
     private static AdminOperation instance;
@@ -32,7 +35,20 @@ public class AdminOperation {
 
         Admin admin = new Admin(id, "admin", encryptedPass, timeNow, "admin");
 
+        File file = new File("data/users.txt");
+        boolean needNewLine = false;
+        if (file.exists() && file.length() > 0) {
+            try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+                raf.seek(file.length() -1);
+                if (raf.readByte() != '\n') {
+                    needNewLine = true;
+                }
+            } catch (IOException e) {
+            }
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("data/users.txt", true))) {
+            if (needNewLine) bw.newLine();
             bw.write(admin.toString());
             bw.newLine();
         } catch (IOException e) {

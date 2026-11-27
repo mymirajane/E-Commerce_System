@@ -7,9 +7,6 @@ import operation.CustomerOperation;
 import operation.UserOperation;
 import model.CustomerListResult;
 
-
-
-public class Main {
     private static final IOInterface io = IOInterface.getInstance();
     private static final UserOperation userOperation = UserOperation.getInstance();
     private static final AdminOperation adminOperation = AdminOperation.getInstance();
@@ -25,7 +22,8 @@ public class Main {
             try {
                 io.mainMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
-                if (choice == null || choice.length < 1) continue;
+                if (choice == null || choice.length < 1)
+                    continue;
                 switch (choice[0].trim()) {
                     case "1":
                         handleLogin();
@@ -47,7 +45,8 @@ public class Main {
 
     private static void handleLogin() {
         String[] inputs = io.getUserInput("Enter username and password: ", 2);
-        if (inputs == null || inputs.length < 2) return;
+        if (inputs == null || inputs.length < 2)
+            return;
         String username = inputs[0].trim();
         String password = inputs[1].trim();
 
@@ -75,8 +74,9 @@ public class Main {
             try {
                 io.adminMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
-                if (choice == null || choice.length < 1) continue;
-                switch(choice[0].trim()) {
+                if (choice == null || choice.length < 1)
+                    continue;
+                switch (choice[0].trim()) {
                     case "1":
                     case "4":
                     case "5":
@@ -107,7 +107,8 @@ public class Main {
             try {
                 io.customerMenu();
                 String[] choice = io.getUserInput("Enter your choice: ", 1);
-                if (choice == null || choice.length < 1) continue;
+                if (choice == null || choice.length < 1)
+                    continue;
                 switch (choice[0].trim()) {
                     case "1":
                         io.printObject(customer);
@@ -123,8 +124,8 @@ public class Main {
                     case "6":
                         io.printMessage("Logged out.");
                         return;
-                        default:
-                            io.printErrorMessage("CustomerMenu", "Invalid choice. Please enter 1 to 6.");
+                    default:
+                        io.printErrorMessage("CustomerMenu", "Invalid choice. Please enter 1 to 6.");
                 }
 
             } catch (Exception e) {
@@ -132,9 +133,11 @@ public class Main {
             }
         }
     }
+
     private static void handleRegister() {
-        String[] inputs = io.getUserInput("Enter name, pass, email, and mobile (seperated by space): ",4);
-        if (inputs == null || inputs.length < 4) return;
+        String[] inputs = io.getUserInput("Enter name, pass, email, and mobile (seperated by space): ", 4);
+        if (inputs == null || inputs.length < 4)
+            return;
         String name = inputs[0].trim();
         String pass = inputs[1].trim();
         String email = inputs[2].trim();
@@ -148,17 +151,18 @@ public class Main {
             io.printErrorMessage("Register", "Username already exists. Please choose another.");
             return;
         }
-       
+
         if (!userOperation.validatePassword(pass)) {
-            io.printErrorMessage("Register", "Invalid password. Must be at least 5 characters with 1 letter and 1 number.");
+            io.printErrorMessage("Register",
+                    "Invalid password. Must be at least 5 characters with 1 letter and 1 number.");
             return;
         }
-    
+
         if (!customerOperation.validateEmail(email)) {
             io.printErrorMessage("Register", "Invalid email format (e.g., user@example.com).");
             return;
         }
-       
+
         if (!customerOperation.validateMobile(mobile)) {
             io.printErrorMessage("Register", "Invalid mobile. Must be 10 digits starting with 03 or 04.");
             return;
@@ -172,9 +176,10 @@ public class Main {
         }
     }
 
-    private static void handleUpdateProfile (Customer customer) {
-        String[] inputs = io.getUserInput("Enter attribute (username/password/email/mobile) and new value: ",2);
-        if (inputs == null || inputs.length < 2) return;
+    private static void handleUpdateProfile(Customer customer) {
+        String[] inputs = io.getUserInput("Enter attribute (username/password/email/mobile) and new value: ", 2);
+        if (inputs == null || inputs.length < 2)
+            return;
         String attr = inputs[0].trim();
         String val = inputs[1].trim();
 
@@ -183,11 +188,55 @@ public class Main {
             return;
         }
 
+        switch (attr.toLowerCase()) {
+            case "user_name":
+            case "username":
+                if (!userOperation.validateUsername(val)) {
+                    io.printErrorMessage("UpdateProfile", "Invalid username. Use at least 5 letters or underscores.");
+                    return;
+                }
+                if (!val.equals(customer.getUserName()) && userOperation.checkUsernameExist(val)) {
+                    io.printErrorMessage("UpdateProfile", "Username already exists. please choose another.");
+                    return;
+                }
+                break;
+
+            case "user_password":
+            case "password":
+                if (!userOperation.validatePassword(val)) {
+                    io.printErrorMessage("UpdateProfile",
+                            "Invalid password. Must be at least 5 characters with 1 letter and 1 number.");
+                    return;
+                }
+                break;
+
+            case "user_email":
+            case "email":
+                if (!customerOperation.validateEmail(val)) {
+                    io.printErrorMessage("UpdateProfile", "Invalid email format (e.g., user@example.com).");
+                    return;
+                }
+                break;
+
+            case "user_mobile":
+            case "mobile":
+                if (!customerOperation.validateMobile(val)) {
+                    io.printErrorMessage("UpdateProfile", "Invalid mobile. Must be 10 digits starting with 03 or 04.");
+                    return;
+                }
+                break;
+            default:
+                io.printErrorMessage("UpdateProfile",
+                        "Unknown attribute. Choose username, password, email. or mobile.");
+                return;
+        }
+
         boolean ok = customerOperation.updateProfile(attr, val, customer);
         if (ok) {
             io.printMessage("Profile updated successfully!");
         } else {
-            io.printErrorMessage("UpdateProfile", "Update failed. Invalid attribute, duplicate username, or invalid format.");
+            io.printErrorMessage("UpdateProfile",
+                    "Update failed. Invalid attribute, duplicate username, or invalid format.");
         }
     }
 
@@ -202,8 +251,11 @@ public class Main {
 
             io.showList("admin", "Customer", result.getCustomers(), result.getCurrentPage(), result.getTotalPages());
 
-            String[] nav = io.getUserInput("Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a customer ID to view details: ", 1);
-            if (nav == null || nav.length < 1) continue;
+            String[] nav = io.getUserInput(
+                    "Enter 'n' for next page, 'p' for previous page, 'b' to go back, or a customer ID to view details: ",
+                    1);
+            if (nav == null || nav.length < 1)
+                continue;
             String cmd = nav[0].trim();
 
             if ("b".equalsIgnoreCase(cmd)) {
@@ -221,18 +273,20 @@ public class Main {
                     io.printErrorMessage("ShowCustomers", "You are already on the first page.");
                 }
             } else {
-                
+
                 Customer found = null;
                 for (int p = 1; p <= result.getTotalPages(); p++) {
                     CustomerListResult pageRes = customerOperation.getCustomerList(p);
-                    if (pageRes == null || pageRes.getCustomers() == null) continue;
+                    if (pageRes == null || pageRes.getCustomers() == null)
+                        continue;
                     for (Customer c : pageRes.getCustomers()) {
                         if (c != null && cmd.equals(c.getUserId())) {
                             found = c;
                             break;
                         }
                     }
-                    if (found != null) break;
+                    if (found != null)
+                        break;
                 }
                 if (found != null) {
                     io.printObject(found);
@@ -241,8 +295,4 @@ public class Main {
                 }
             }
         }
-    }
 }
-
-    
-

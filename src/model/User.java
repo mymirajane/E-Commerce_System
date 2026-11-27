@@ -1,5 +1,8 @@
 package model;
-
+/**
+ * Abstract base class for Customer and Admin classes
+ * User
+ */
 public abstract class User {
     private String userId;
     private String userName;
@@ -7,6 +10,14 @@ public abstract class User {
     private String userRegisterTime;
     private String userRole;
 
+/**
+ * Constructs a user object
+ * @param userId
+ * @param userName
+ * @param userPassword
+ * @param userRegisterTime
+ * @param userRole
+ */
     public User(String userId, String userName, String userPassword, String userRegisterTime, String userRole) {
         this.userId = userId;
         this.userName = userName;
@@ -14,6 +25,9 @@ public abstract class User {
         this.userRegisterTime = userRegisterTime;
         this.userRole = userRole;
     }
+/**
+ * Default constructor
+ */
     public User() {
         this.userId = "";
         this.userName = "";
@@ -59,6 +73,10 @@ public abstract class User {
         this.userRole = userRole;
     }
 
+    /**    (non-Javadoc)
+     * Returns the user Information as a formatted string.
+     * @return String in JSON-like format
+     */
     @Override 
     public String toString() {
         return "{\"user_id\":\"" + userId + "\", \"user_name\":\"" + userName + "\", \"user_password\":\"" + userPassword + "\", \"user_register_time\":\"" + userRegisterTime + "\", \"user_role\":\"" + userRole + "\"}";
