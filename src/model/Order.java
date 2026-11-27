@@ -23,8 +23,16 @@ public class Order {
         return orderId;
     }
 
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
     public String getUserId() {
         return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     
@@ -32,8 +40,16 @@ public class Order {
         return proId;
     }
 
+    public void setProId(String proId) {
+        this.proId = proId;
+    }
+
     public String getOrderTime() {
         return orderTime;
+    }
+
+    public void setOrderTime(String orderTime) {
+        this.orderTime = orderTime;
     }
 
   

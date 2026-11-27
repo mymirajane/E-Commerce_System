@@ -196,8 +196,8 @@ public class Main {
         }
     }
 
-    private static void handleUpdateProfile (Customer customer) {
-        String[] inputs = io.getUserInput("Enter attribute (username/password/email/mobile) and new value: ",2);
+    private static void handleUpdateProfile(Customer customer) {
+        String[] inputs = io.getUserInput("Enter attribute (username/password/email/mobile) and new value: ", 2);
         if (inputs == null || inputs.length < 2) return;
         String attr = inputs[0].trim();
         String val = inputs[1].trim();
@@ -205,6 +205,45 @@ public class Main {
         if (attr.isEmpty() || val.isEmpty()) {
             io.printErrorMessage("UpdateProfile", "Attribute and new value cannot be empty.");
             return;
+        }
+
+        switch (attr.toLowerCase()) {
+            case "user_name":
+            case "username":
+                if (!userOperation.validateUsername(val)) {
+                    io.printErrorMessage("UpdateProfile", "Invalid username. Use at least 5 letters or underscores.");
+                    return;
+                }
+                if (!val.equals(customer.getUserName()) && userOperation.checkUsernameExist(val)) {
+                    io.printErrorMessage("UpdateProfile", "Username already exists. Please choose another.");
+                    return;
+                }
+                break;
+            case "user_password":
+            case "password":
+                if (!userOperation.validatePassword(val)) {
+                    io.printErrorMessage("UpdateProfile",
+                            "Invalid password. Must be at least 5 characters with 1 letter and 1 number.");
+                    return;
+                }
+                break;
+            case "user_email":
+            case "email":
+                if (!customerOperation.validateEmail(val)) {
+                    io.printErrorMessage("UpdateProfile", "Invalid email format (e.g., user@example.com).");
+                    return;
+                }
+                break;
+            case "user_mobile":
+            case "mobile":
+                if (!customerOperation.validateMobile(val)) {
+                    io.printErrorMessage("UpdateProfile", "Invalid mobile. Must be 10 digits starting with 03 or 04.");
+                    return;
+                }
+                break;
+            default:
+                io.printErrorMessage("UpdateProfile", "Unknown attribute. Choose username, password, email, or mobile.");
+                return;
         }
 
         boolean ok = customerOperation.updateProfile(attr, val, customer);
