@@ -43,7 +43,11 @@ public class OrderOperation {
         List<String> testCustomerIds = new ArrayList<>();
 
         for (int i = 1; i <= 10; i++) {
+<<<<<<< Updated upstream
             String username = "test_user_" + (char) ('a' + i - 1);
+=======
+            String username = "test_user_" + i;
+>>>>>>> Stashed changes
             String password = "pass" + i + "234";
             String email = "testuser" + i + "@gmail.com";
             String mobile = "04" + String.format("%08d", 10000000 + i);
@@ -55,7 +59,11 @@ public class OrderOperation {
         int year = LocalDateTime.now().getYear();
         for (int i = 0; i < limit; i++) {
             String customerId = testCustomerIds.get(i);
+<<<<<<< Updated upstream
             int numOrders = 50 + random.nextInt(151);
+=======
+            int numOrders = 50 + random.nextInt(151); // 50 to 200 
+>>>>>>> Stashed changes
 
             for (int j = 0; j < numOrders; j++) {
                 String proId = productIds.get(random.nextInt(productIds.size()));
