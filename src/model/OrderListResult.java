@@ -1,7 +1,7 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 
 public class OrderListResult {
@@ -11,9 +11,7 @@ public class OrderListResult {
 
 
     public OrderListResult() {
-        this.orderList = new ArrayList<>();
-        this.currentPage = 0;
-        this.totalPages = 0;
+        this(new ArrayList<>(), 0, 0);
     }
 
 
@@ -28,26 +26,23 @@ public class OrderListResult {
         return orderList;
     }
 
-
     public void setOrderList(List<Order> orderList) {
         this.orderList = orderList;
     }
 
-
+   
     public int getCurrentPage() {
         return currentPage;
     }
-
 
     public void setCurrentPage(int currentPage) {
         this.currentPage = currentPage;
     }
 
-
+   
     public int getTotalPages() {
         return totalPages;
     }
-
 
     public void setTotalPages(int totalPages) {
         this.totalPages = totalPages;

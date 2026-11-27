@@ -1,14 +1,11 @@
 package model;
 
-import org.json.JSONObject;
-
 
 public class Order {
     private String orderId;
     private String userId;
     private String proId;
     private String orderTime;
-
 
     public Order(String orderId, String userId, String proId, String orderTime) {
         this.orderId = orderId;
@@ -17,14 +14,11 @@ public class Order {
         this.orderTime = orderTime;
     }
 
-
     public Order() {
-        this.orderId = "";
-        this.userId = "";
-        this.proId = "";
-        this.orderTime = "";
+        this("o_00000", "u_0000000000", "", "01-01-2000_00:00:00");
     }
 
+ 
     public String getOrderId() {
         return orderId;
     }
@@ -41,6 +35,7 @@ public class Order {
         this.userId = userId;
     }
 
+    
     public String getProId() {
         return proId;
     }
@@ -57,14 +52,12 @@ public class Order {
         this.orderTime = orderTime;
     }
 
-
+  
     @Override
     public String toString() {
-        JSONObject json = new JSONObject();
-        json.put("order_id", this.orderId);
-        json.put("user_id", this.userId);
-        json.put("pro_id", this.proId);
-        json.put("order_time", this.orderTime);
-        return json.toString();
+        return "{\"order_id\":\"" + orderId + "\", "
+                + "\"user_id\":\"" + userId + "\", "
+                + "\"pro_id\":\"" + proId + "\", "
+                + "\"order_time\":\"" + orderTime + "\"}";
     }
 }
