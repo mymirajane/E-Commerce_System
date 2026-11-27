@@ -49,7 +49,7 @@ public class ProductOperation {
     private List<Product> readAllProducts() {
         List<Product> list = new ArrayList<>();
         File file = new File(PRODUCT_FILE);
-        if (!file.exists() || file.length() == 0) {
+        if (!file.exists()) {
             extractProductsFromFiles();
         }
 

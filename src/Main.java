@@ -1,11 +1,19 @@
 import io.IOInterface;
 import model.Admin;
 import model.Customer;
+import model.Product;
+import model.ProductListResult;
+import model.OrderListResult;
+import model.Order;
+import operation.OrderOperation;
+import operation.ProductOperation;
 import model.User;
 import operation.AdminOperation;
 import operation.CustomerOperation;
 import operation.UserOperation;
 import model.CustomerListResult;
+import java.util.ArrayList;
+import java.util.List;
 
 
 
@@ -14,6 +22,8 @@ public class Main {
     private static final UserOperation userOperation = UserOperation.getInstance();
     private static final AdminOperation adminOperation = AdminOperation.getInstance();
     private static final CustomerOperation customerOperation = CustomerOperation.getInstance();
+    private static final OrderOperation orderOperation = OrderOperation.getInstance();
+    private static final ProductOperation productOperation = ProductOperation.getInstance();
 
     public static void main(String[] args) {
         adminOperation.registerAdmin();
@@ -78,11 +88,20 @@ public class Main {
                 if (choice == null || choice.length < 1) continue;
                 switch(choice[0].trim()) {
                     case "1":
+                        handleShowAdminProducts();
+                        break;
                     case "4":
+                        handleShowOrders(null);
+                        break;
                     case "5":
+                        orderOperation.generateTestOrderData();
+                        io.printMessage("Test customer and order data generated.");
+                        break;
                     case "6":
+                        handleGenerateAllFigures();
+                        break;
                     case "7":
-                        io.printMessage("Feature " + choice[0] + " will be connected by team.");
+                        handleDeleteAllData();
                         break;
                     case "2":
                         handleRegister();
@@ -106,7 +125,7 @@ public class Main {
         while (true) {
             try {
                 io.customerMenu();
-                String[] choice = io.getUserInput("Enter your choice: ", 1);
+                String[] choice = io.getUserInput("Enter your choice: ", 2);
                 if (choice == null || choice.length < 1) continue;
                 switch (choice[0].trim()) {
                     case "1":
@@ -116,9 +135,14 @@ public class Main {
                         handleUpdateProfile(customer);
                         break;
                     case "3":
+                        handleShowProducts(customer, choice[1].trim());
+                        break;
                     case "4":
+                        handleShowOrders(customer.getUserId());
+                        break;
                     case "5":
-                        io.printMessage("Feature " + choice[0] + " will be connected by team.");
+                        orderOperation.generateSingleCustomerConsumptionFigure(customer.getUserId());
+                        io.printMessage("Your consumption figure was saved in data/figure.");
                         break;
                     case "6":
                         io.printMessage("Logged out.");
@@ -240,6 +264,226 @@ public class Main {
                     io.printErrorMessage("ShowCustomers", "Customer ID not found: " + cmd);
                 }
             }
+        }
+    }
+
+    private static void handleShowOrders(String customerId) {
+        int page = 1;
+        boolean adminView = customerId == null;
+        while (true) {
+            OrderListResult result = orderOperation.getOrderList(customerId, page);
+            if (result == null || result.getOrderList() == null || result.getOrderList().isEmpty()) {
+                io.printMessage("No orders found.");
+                return;
+            }
+
+            io.showList(adminView ? "admin" : "customer", "Order", result.getOrderList(),
+                    result.getCurrentPage(), result.getTotalPages());
+
+            String[] input = adminView
+                    ? io.getUserInput("Enter n, p, b, or d followed by an order ID to delete: ", 2)
+                    : io.getUserInput("Enter n, p, or b: ", 1);
+            if (input == null || input.length == 0) {
+                continue;
+            }
+
+            String command = input[0].trim();
+            if ("b".equalsIgnoreCase(command)) {
+                return;
+            }
+            if ("n".equalsIgnoreCase(command)) {
+                if (result.getCurrentPage() < result.getTotalPages()) {
+                    page = result.getCurrentPage() + 1;
+                } else {
+                    io.printErrorMessage("ShowOrders", "You are already on the last page.");
+                }
+                continue;
+            }
+            if ("p".equalsIgnoreCase(command)) {
+                if (result.getCurrentPage() > 1) {
+                    page = result.getCurrentPage() - 1;
+                } else {
+                    io.printErrorMessage("ShowOrders", "You are already on the first page.");
+                }
+                continue;
+            }
+            if (adminView && "d".equalsIgnoreCase(command)) {
+                String orderId = input[1].trim();
+                if (orderId.isEmpty()) {
+                    io.printErrorMessage("ShowOrders", "Enter the order ID to delete.");
+                } else if (orderOperation.deleteOrder(orderId)) {
+                    io.printMessage("Order " + orderId + " deleted.");
+                    page = result.getCurrentPage();
+                } else {
+                    io.printErrorMessage("ShowOrders", "Order ID not found: " + orderId);
+                }
+                continue;
+            }
+            io.printErrorMessage("ShowOrders", "Invalid command.");
+        }
+    }
+
+    private static void handleShowProducts(Customer customer, String keyword) {
+        List<Product> products = new ArrayList<>();
+        int page = 1;
+        if (keyword == null || keyword.isEmpty()) {
+            ProductListResult firstPage = productOperation.getProductList(1);
+            if (firstPage == null || firstPage.getTotalPages() == 0) {
+                io.printMessage("No products found.");
+                return;
+            }
+            for (int currentPage = 1; currentPage <= firstPage.getTotalPages(); currentPage++) {
+                ProductListResult result = productOperation.getProductList(currentPage);
+                if (result != null && result.getProductList() != null) {
+                    products.addAll(result.getProductList());
+                }
+            }
+        } else {
+            products = productOperation.getProductListByKeyword(keyword);
+        }
+
+        if (products == null || products.isEmpty()) {
+            io.printMessage("No products found.");
+            return;
+        }
+
+        int totalPages = (int) Math.ceil(products.size() / 10.0);
+        while (true) {
+            page = Math.max(1, Math.min(page, totalPages));
+            int start = (page - 1) * 10;
+            int end = Math.min(start + 10, products.size());
+            List<Product> pageProducts = products.subList(start, end);
+            io.showList("customer", "Product", pageProducts, page, totalPages);
+            String[] input = io.getUserInput("Enter n, p, b, or a product ID to purchase: ", 1);
+            String command = input[0].trim();
+
+            if ("b".equalsIgnoreCase(command)) {
+                return;
+            }
+            if ("n".equalsIgnoreCase(command)) {
+                if (page < totalPages) {
+                    page++;
+                } else {
+                    io.printErrorMessage("ShowProducts", "You are already on the last page.");
+                }
+                continue;
+            }
+            if ("p".equalsIgnoreCase(command)) {
+                if (page > 1) {
+                    page--;
+                } else {
+                    io.printErrorMessage("ShowProducts", "You are already on the first page.");
+                }
+                continue;
+            }
+
+            Product selected = null;
+            for (Product product : pageProducts) {
+                if (product.getProId().equalsIgnoreCase(command)) {
+                    selected = product;
+                    break;
+                }
+            }
+            if (selected == null) {
+                io.printErrorMessage("ShowProducts", "Product ID is not on this page: " + command);
+            } else if (orderOperation.createAnOrder(customer.getUserId(), selected.getProId(), null)) {
+                io.printMessage("Order placed for " + selected.getProName() + ".");
+            } else {
+                io.printErrorMessage("ShowProducts", "Could not place the order.");
+            }
+        }
+    }
+
+    private static void handleShowAdminProducts() {
+        int page = 1;
+        while (true) {
+            ProductListResult result = productOperation.getProductList(page);
+            if (result == null || result.getProductList() == null || result.getProductList().isEmpty()) {
+                io.printMessage("No products found.");
+                return;
+            }
+
+            page = result.getCurrentPage();
+            io.showList("admin", "Product", result.getProductList(), page, result.getTotalPages());
+            String[] input = io.getUserInput("Enter n, p, b, or d followed by a product ID to delete: ", 2);
+            String command = input[0].trim();
+
+            if ("b".equalsIgnoreCase(command)) {
+                return;
+            }
+            if ("n".equalsIgnoreCase(command)) {
+                if (page < result.getTotalPages()) {
+                    page++;
+                } else {
+                    io.printErrorMessage("ShowProducts", "You are already on the last page.");
+                }
+                continue;
+            }
+            if ("p".equalsIgnoreCase(command)) {
+                if (page > 1) {
+                    page--;
+                } else {
+                    io.printErrorMessage("ShowProducts", "You are already on the first page.");
+                }
+                continue;
+            }
+            if ("d".equalsIgnoreCase(command)) {
+                String productId = input[1].trim();
+                if (productId.isEmpty()) {
+                    io.printErrorMessage("ShowProducts", "Enter the product ID to delete.");
+                } else if (productOperation.deleteProduct(productId)) {
+                    io.printMessage("Product " + productId + " deleted.");
+                } else {
+                    io.printErrorMessage("ShowProducts", "Product ID not found: " + productId);
+                }
+                continue;
+            }
+            io.printErrorMessage("ShowProducts", "Invalid command.");
+        }
+    }
+
+    private static void handleGenerateAllFigures() {
+        try {
+            productOperation.generateCategoryFigure();
+            productOperation.generateDiscountFigure();
+            productOperation.generateLikesCountFigure();
+            productOperation.generateDiscountLikesCountFigure();
+            CustomerListResult customers = customerOperation.getCustomerList(1);
+            if (customers != null) {
+                for (int page = 1; page <= customers.getTotalPages(); page++) {
+                    CustomerListResult customerPage = page == 1
+                            ? customers
+                            : customerOperation.getCustomerList(page);
+                    if (customerPage == null || customerPage.getCustomers() == null) {
+                        continue;
+                    }
+                    for (Customer customer : customerPage.getCustomers()) {
+                        orderOperation.generateSingleCustomerConsumptionFigure(customer.getUserId());
+                    }
+                }
+            }
+            orderOperation.generateAllCustomersConsumptionFigure();
+            orderOperation.generateAllTop10BestSellersFigure();
+            io.printMessage("Statistical figures were saved in data/figure.");
+        } catch (Exception e) {
+            io.printErrorMessage("GenerateFigures", "Could not generate figures: " + e.getMessage());
+        }
+    }
+
+    private static void handleDeleteAllData() {
+        String[] confirmation = io.getUserInput("Type DELETE to remove all customer, product, and order data: ", 1);
+        if (confirmation.length == 0 || !"DELETE".equals(confirmation[0])) {
+            io.printMessage("Delete all data cancelled.");
+            return;
+        }
+
+        try {
+            customerOperation.deleteAllCustomers();
+            productOperation.deleteAllProducts();
+            orderOperation.deleteAllOrders();
+            io.printMessage("All customer, product, and order data deleted.");
+        } catch (Exception e) {
+            io.printErrorMessage("DeleteAllData", "Could not delete all data: " + e.getMessage());
         }
     }
 }
