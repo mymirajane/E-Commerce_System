@@ -105,8 +105,7 @@ public class UserOperation {
         }
 
     public boolean checkUsernameExist(String userName) {
-        if (userName == null)
-            return false;
+        if (userName == null || userName.trim().isEmpty()) return false;
         try (BufferedReader br = new BufferedReader(new FileReader("data/users.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
