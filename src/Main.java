@@ -1,4 +1,5 @@
 import io.IOInterface;
+import javafx.application.Platform;
 import model.Admin;
 import model.Customer;
 import model.Product;
@@ -45,6 +46,7 @@ public class Main {
                         break;
                     case "3":
                         io.printMessage("Goodbye!");
+                        Platform.exit();
                         return;
                     default:
                         io.printErrorMessage("Main.runMenu", "Invalid choice! Please enter 1, 2 or 3.");
