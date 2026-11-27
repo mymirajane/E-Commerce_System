@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import model.Customer;
+import java.io.File;
+import java.io.RandomAccessFile;
+
 
 public class CustomerOperation {
     private static CustomerOperation instance;
@@ -50,7 +53,20 @@ public class CustomerOperation {
 
         Customer customer = new Customer(id, userName, encryptedPassword, timeNow, "customer", userEmail, userMobile);
         
+        File file = new File("data/users.txt");
+        boolean needNewLine = false;
+        if (file.exists() && file.length() > 0) {
+            try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+                raf.seek(file.length() -1);
+                if (raf.readByte() != '\n') {
+                needNewLine = true;
+                }
+            } catch (IOException e) {
+            }
+        }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("data/users.txt", true))) {
+            if (needNewLine) bw.newLine();
             bw.write(customer.toString());
             bw.newLine();
             return true;
@@ -69,16 +85,19 @@ public class CustomerOperation {
                 customerObject.setUserName(value);
                 break;
 
+            case "user_password":
             case "password":
                 if(!UserOperation.getInstance().validatePassword(value)) return false;
                 customerObject.setUserPassword(UserOperation.getInstance().encryptPassword(value));
             break;
 
+            case "user_email":
             case "email":
                 if (!validateEmail(value)) return false;
                 customerObject.setUserEmail(value);
                 break;
 
+            case "user_mobile":
             case "mobile":
                 if (!validateMobile(value)) return false;
                 customerObject.setUserMobile(value);
@@ -166,6 +185,7 @@ public class CustomerOperation {
         } catch (Exception e) {
             return;
         }
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("data/users.txt", false))) {
             for (String l : keepLines) {
                 bw.write(l);
